@@ -294,7 +294,7 @@ final class Box_Installer
         }
         $passwordObject = new \Box_Password();
         $sql = "INSERT INTO admin (role, name, email, pass, protected, created_at, updated_at) VALUES('admin', '%s', '%s', '%s', 1, NOW(), NOW());";
-        $sql = sprintf($sql, mysqli_real_escape_string($ns->get('admin_name')), mysqli_real_escape_string($ns->get('admin_email')), mysqli_real_escape_string($passwordObject->hashIt($ns->get('admin_pass'))));
+        $sql = sprintf($sql, mysqli_real_escape_string($link, $ns->get('admin_name')), mysqli_real_escape_string($link, $ns->get('admin_email')), mysqli_real_escape_string($link, $passwordObject->hashIt($ns->get('admin_pass'))));
         $res = mysqli_query($link, $sql);
         if(!$res) {
             throw new Exception(mysqli_error($link));
