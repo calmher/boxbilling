@@ -198,14 +198,14 @@ final class Box_Installer
 
     private function canConnectToDatabase($host, $db, $user, $pass)
     {
-        $link = @mysql_connect($host, $user, $pass);
+        $link = @mysqli_connect($host, $user, $pass);
         if ($link) {
-            $db_selected = @mysql_select_db($db, $link);
+            $db_selected = @mysqli_select_db($link, $db);
             if($db_selected) {
-                mysql_close($link);
+                mysqli_close($link);
                 return true;
             }
-            mysql_close($link);
+            mysqli_close($link);
         }
         return false;
     }
@@ -247,19 +247,19 @@ final class Box_Installer
         $this->_isValidInstallData($ns);
         $this->_createConfigurationFile($ns);
 
-        $link = @mysql_connect($ns->get('db_host'), $ns->get('db_user'), $ns->get('db_pass'));
+        $link = @mysqli_connect($ns->get('db_host'), $ns->get('db_user'), $ns->get('db_pass'));
 
         if (!$link) {
             throw new Exception('Could not connect to database');
         }
 
-        $db_selected = @mysql_select_db($ns->get('db_name'), $link);
+        $db_selected = @mysqli_select_db($link, $ns->get('db_name'));
 
         if (!$db_selected) {
             throw new Exception('Could not select database');
         }
 
-        mysql_query("SET NAMES 'utf8'");
+        mysqli_query($link, "SET NAMES 'utf8'");
         
         /*
         $qry = mysql_query("SHOW TABLES;");
@@ -285,8 +285,8 @@ final class Box_Installer
         $err = '';
         foreach ($sql as $query) {
             if (!trim($query)) continue;
-            $res = mysql_query($query, $link);
-            $err .= mysql_error();
+            $res = mysqli_query($link, $query);
+            $err .= mysqli_error($link);
         }
 
         if(!empty($err)) {
@@ -294,13 +294,13 @@ final class Box_Installer
         }
         $passwordObject = new \Box_Password();
         $sql = "INSERT INTO admin (role, name, email, pass, protected, created_at, updated_at) VALUES('admin', '%s', '%s', '%s', 1, NOW(), NOW());";
-        $sql = sprintf($sql, mysql_real_escape_string($ns->get('admin_name')), mysql_real_escape_string($ns->get('admin_email')), mysql_real_escape_string($passwordObject->hashIt($ns->get('admin_pass'))));
-        $res = mysql_query($sql, $link);
+        $sql = sprintf($sql, mysqli_real_escape_string($ns->get('admin_name')), mysqli_real_escape_string($ns->get('admin_email')), mysqli_real_escape_string($passwordObject->hashIt($ns->get('admin_pass'))));
+        $res = mysqli_query($link, $sql);
         if(!$res) {
-            throw new Exception(mysql_error());
+            throw new Exception(mysqli_error($link));
         }
 
-        mysql_close($link);
+        mysqli_close($link);
 
         try {
             $this->_sendMail($ns);
